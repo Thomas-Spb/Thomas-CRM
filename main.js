@@ -4,10 +4,12 @@ const modalTitle = document.querySelector('.modal__title');
 const modalForm = document.querySelector('.modal__form');
 const modalCheckbox = document.querySelector('.modal__checkbox');
 const modalInputDiscount = document.querySelector('.modal__input_discount');
-console.log('modalTitle: ', modalTitle);
-console.log('modalForm: ', modalForm);
-console.log('modalCheckbox: ', modalCheckbox);
-console.log('modalInputDiscount: ', modalInputDiscount);
+const tableBody = document.querySelector('.table__body');
+const addGoodBtn = document.querySelector('.panel__add-goods');
+// console.log('modalTitle: ', modalTitle);
+// console.log('modalForm: ', modalForm);
+// console.log('modalCheckbox: ', modalCheckbox);
+// console.log('modalInputDiscount: ', modalInputDiscount);
 
 const goods = [
   {
@@ -73,51 +75,97 @@ const goods = [
 const overlay = document.querySelector('.overlay');
 overlay.classList.remove('active');
 
-const createRow = (good, idx) => {
-  // console.log('good: ', good);
-  const tableRow = ` 
-<tr>
-    <td class="table__cell">${idx}</td>
-    <td class="table__cell table__cell_left table__cell_name" data-id="${good.id}">
-    <span class="table__cell-id">id: ${good.id}</span>
-    ${good.title}</td>
-    <td class="table__cell table__cell_left">${good.category}</td>
-    <td class="table__cell">шт</td>
-    <td class="table__cell">${good.count}</td>
-    <td class="table__cell">$${good.price}</td>
-    <td class="table__cell">$${good.price * good.count}</td>
-    <td class="table__cell table__cell_btn-wrapper">
-        <button class="table__btn table__btn_pic"></button>
-        <button class="table__btn table__btn_edit"></button>
-        <button class="table__btn table__btn_del"></button>
-    </td>
-</tr>`;
-  console.log(tableRow);
-  return tableRow;
+let numb = 2;
+const createRow = obj => {
+  const tr = document.createElement('tr');
+  for (let item in obj) {
+    if (item === 'id' || item === 'description' || item === 'discount' || item === 'images') {
+      continue;
+    } else {
+      numb++;
+      const number = document.createElement('td');
+      number.classList.add('table__cell');
+      number.textContent = numb;
+
+      const title = document.createElement('td');
+      title.classList.add('table__cell', 'table__cell_left', 'table__cell_name');
+      title.setAttribute('data-id', obj['id']);
+      title.textContent = obj['title'];
+      const spanId = document.createElement('span');
+      spanId.classList.add('table__cell-id');
+      spanId.textContent = `id: ${obj['id']}`;
+      title.prepend(spanId);
+
+      const category = document.createElement('td');
+      category.classList.add('table__cell', 'table__cell_left');
+      category.textContent = obj['category'];
+
+      const units = document.createElement('td');
+      units.classList.add('table__cell');
+      units.textContent = obj['units'];
+
+      const count = document.createElement('td');
+      count.classList.add('table__cell');
+      count.textContent = obj['count'];
+
+      const price = document.createElement('td');
+      price.classList.add('table__cell');
+      price.textContent = `$${obj['price']}`;
+
+      const totalPrice = document.createElement('td');
+      totalPrice.classList.add('table__cell');
+      totalPrice.textContent = `$${obj['price'] * obj['count']}`;
+
+      const buttons = document.createElement('td');
+      buttons.classList.add('table__cell', 'table__cell_btn-wrapper');
+      const btnPic = document.createElement('button');
+      btnPic.classList.add('table__btn', 'table__btn_pic');
+      const btnEdit = document.createElement('button');
+      btnEdit.classList.add('table__btn', 'table__btn_edit');
+      const btnDel = document.createElement('button');
+      btnDel.classList.add('table__btn', 'table__btn_del');
+      buttons.append(btnPic, btnEdit, btnDel);
+
+      tr.append(number, title, category, units, count, price, totalPrice, buttons);
+      break;
+    }
+  }
+
+  tableBody.append(tr);
 };
 
 const renderGoods = goods => {
-  goods.forEach((good, idx) => {
-    return createRow(good, idx);
+  goods.forEach(item => {
+    createRow(item);
   });
 };
 
-renderGoods(goods);
-
-const addGood = document.querySelector('.panel__add-goods');
 const modalClose = document.querySelector('.modal__close');
 const overlayModal = document.querySelector('.overlay__modal');
 
-addGood.addEventListener('click', () => {
+addGoodBtn.addEventListener('click', () => {
   overlay.classList.add('active');
 });
 
-overlay.addEventListener('click', () => {
-  overlay.classList.remove('active');
+overlay.addEventListener('click', e => {
+  const target = e.target;
+  if (target === overlay || target.closest('.modal__close')) {
+    overlay.classList.remove('active');
+  }
 });
-modalClose.addEventListener('click', () => {
-  overlay.classList.remove('active');
+
+tableBody.addEventListener('click', e => {
+  const target = e.target;
+  if (target.closest('.table__btn_del')) {
+    goods.forEach((item, index) => {
+      if (target.closest('tr').querySelector('.table__cell-id').textContent === `id: ${item.id}`) {
+        goods.splice(index, 1);
+      }
+    });
+    target.closest('tr').remove();
+    // renderGoods(goods);
+  }
+  console.log(goods);
 });
-overlayModal.addEventListener('click', event => {
-  event.stopPropagation();
-});
+
+renderGoods(goods);
