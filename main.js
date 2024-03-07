@@ -1,16 +1,5 @@
 'use sctrict';
 
-const modalTitle = document.querySelector('.modal__title');
-const modalForm = document.querySelector('.modal__form');
-const modalCheckbox = document.querySelector('.modal__checkbox');
-const modalInputDiscount = document.querySelector('.modal__input_discount');
-const tableBody = document.querySelector('.table__body');
-const addGoodBtn = document.querySelector('.panel__add-goods');
-// console.log('modalTitle: ', modalTitle);
-// console.log('modalForm: ', modalForm);
-// console.log('modalCheckbox: ', modalCheckbox);
-// console.log('modalInputDiscount: ', modalInputDiscount);
-
 const goods = [
   {
     id: 1,
@@ -134,17 +123,96 @@ const createRow = obj => {
   tableBody.append(tr);
 };
 
-const renderGoods = goods => {
-  goods.forEach(item => {
-    createRow(item);
-  });
+const renderGoods = objGood => {
+  if (Array.isArray(objGood)) {
+    const arrGoods = objGood.map(item => createRow(item));
+    createRow(...arrGoods);
+  } else {
+    goods.push(objGood);
+    createRow(objGood);
+  }
 };
 
+const tableTotalPrice = document.querySelector('.cms__total-price');
+// console.log('tableTotalPrice: ', tableTotalPrice);
+
+const tableResultPrice = objGood => {
+  let totalPrice = 15500;
+  objGood.map(item => (totalPrice += item.count * item.price));
+  //   console.log(totalPrice);
+  tableTotalPrice.textContent = `$ ${totalPrice}`;
+};
+
+tableResultPrice(goods);
+
+const modal = document.querySelector('.modal');
+const modalTitle = modal.querySelector('.modal__title');
+const modalForm = modal.querySelector('.modal__form');
+// console.log('modalForm: ', modalForm.count);
+const modalCheckbox = modal.querySelector('.modal__checkbox');
+const modalInputDiscount = modal.querySelector('.modal__input_discount');
+const modalId = modal.querySelector('.vendor-code__id');
+const modalTotalPrice = modal.querySelector('.modal__total-price');
+modalTotalPrice.textContent = '$ 0.00';
+console.log('modalId: ', modalId);
+
+const modalCount = modalForm.count;
+console.log('modalCount: ', modalCount);
+const modalPrice = modalForm.price;
+console.log('modalPrice: ', modalPrice);
+
+const tableBody = document.querySelector('.table__body');
+const addGoodBtn = document.querySelector('.panel__add-goods');
 const modalClose = document.querySelector('.modal__close');
 const overlayModal = document.querySelector('.overlay__modal');
 
+modalCount.addEventListener('blur', () => {
+  if (modalCount.value !== '' && modalPrice.value !== '') {
+    modalTotalPrice.textContent = `$ ${+modalCount.value * +modalPrice.value}`;
+  }
+});
+
+modalPrice.addEventListener('blur', () => {
+  if (modalCount.value !== '' && modalPrice.value !== '') {
+    modalTotalPrice.textContent = `$ ${+modalCount.value * +modalPrice.value}`;
+  }
+});
+
+const createId = arr => {
+  const randomId = Math.floor(Math.random() * 1000000000);
+  arr.forEach(item => {
+    if (item.id === randomId) {
+      createId(arr);
+    }
+  });
+  return randomId;
+};
+
+modalForm.addEventListener('submit', e => {
+  e.preventDefault();
+  const formData = new FormData(e.target);
+  const newGood = Object.fromEntries(formData);
+  newGood['id'] = modalId.textContent;
+
+  console.log('newGood: ', newGood);
+  renderGoods(newGood);
+  modalForm.reset();
+  overlay.classList.remove('active');
+  modalTotalPrice.textContent = '$ 0.00';
+});
+
+modalCheckbox.addEventListener('change', () => {
+  if (modalInputDiscount.disabled) {
+    modalInputDiscount.disabled = false;
+  } else {
+    modalInputDiscount.value = '';
+    modalInputDiscount.disabled = true;
+  }
+});
+
 addGoodBtn.addEventListener('click', () => {
   overlay.classList.add('active');
+  modalId.textContent = createId(goods);
 });
 
 overlay.addEventListener('click', e => {
